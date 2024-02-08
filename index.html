@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBM Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #eceff1; /* 60% */
+        }
+
+        .box-container {
+            margin-bottom: 20px;
+            background-color: #fff; /* 30% */
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: inline-block;
+            width: 150px;
+            margin-bottom: 5px;
+            color: #455a64; /* 30% */
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 150px;
+            padding: 5px;
+            border: 1px solid #90a4ae; /* 30% */
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background-color: #546e7a; /* 10% */
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #455a64; /* Darker shade for hover */
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff; /* 30% */
+            border-radius: 5px;
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .box-details {
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .box-details p {
+            margin: 0;
+            color: #455a64; /* 30% */
+        }
+
+        .result-row .remove-button {
+            background-color: #ff5722; /* 10% */
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .result-row .remove-button:hover {
+            background-color: #e64a19; /* Darker shade for hover */
+        }
+
+        .error-message {
+            color: #ff0000;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CBM Calculator</h1>
+    <div id="boxes-container">
+        <!-- Box details will be dynamically added here -->
+    </div>
+    <button onclick="addBox()">Add Box</button>
+    <button onclick="calculateCBM()">Calculate CBM</button>
+    <button onclick="resetAll()">Reset All</button>
+    <div id="result"></div>
+    <script>
+        var boxCount = 0;
+
+        // Add one box tab as default
+        addBox();
+
+        function addBox() {
+            boxCount++;
+            var boxContainer = document.createElement("div");
+            boxContainer.classList.add("box-container");
+
+            var boxInputs = `
+                <label for="box-name">Box Name:</label>
+                <input type="text" class="box-name" value="Box ${boxCount}">
+                <br>
+                <label for="length">Length (cm):</label>
+                <input type="number" class="length">
+                <br>
+                <label for="width">Width (cm):</label>
+                <input type="number" class="width">
+                <br>
+                <label for="height">Height (cm):</label>
+                <input type="number" class="height">
+                <br>
+                <label for="quantity">Quantity of Boxes:</label>
+                <input type="number" class="quantity">
+                <br>
+                <button onclick="removeBox(this)">Remove</button>
+                <br><br>
+                <div class="error-message"></div>
+            `;
+            boxContainer.innerHTML = boxInputs;
+
+            document.getElementById("boxes-container").appendChild(boxContainer);
+        }
+
+        function removeBox(button) {
+            boxCount--;
+            var boxContainer = button.parentElement;
+            boxContainer.remove();
+        }
+
+        function validateBoxes() {
+            var isValid = true;
+            var boxContainers = document.querySelectorAll(".box-container");
+
+            boxContainers.forEach(function(boxContainer, index) {
+                var length = boxContainer.querySelector(".length").value.trim();
+                var width = boxContainer.querySelector(".width").value.trim();
+                var height = boxContainer.querySelector(".height").value.trim();
+                var quantity = boxContainer.querySelector(".quantity").value.trim();
+
+                var errorMessage = boxContainer.querySelector(".error-message");
+                errorMessage.innerHTML = ''; // Clear previous error message
+
+                if (length === '' || width === '' || height === '' || quantity === '') {
+                    errorMessage.innerHTML = 'All fields are required.';
+                    isValid = false;
+                } else if (isNaN(length) || isNaN(width) || isNaN(height) || isNaN(quantity)) {
+                    errorMessage.innerHTML = 'All fields must be numeric.';
+                    isValid = false;
+                } else if (parseFloat(length) <= 0 || parseFloat(width) <= 0 || parseFloat(height) <= 0 || parseInt(quantity) <= 0) {
+                    errorMessage.innerHTML = 'All dimensions and quantity must be greater than zero.';
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        function calculateCBM() {
+            if (!validateBoxes()) {
+                return;
+            }
+
+            var boxContainers = document.querySelectorAll(".box-container");
+            var totalCBM = 0;
+
+            document.getElementById("result").innerHTML = ''; // Clear previous result
+
+            boxContainers.forEach(function(boxContainer, index) {
+                var length = parseFloat(boxContainer.querySelector(".length").value);
+                var width = parseFloat(boxContainer.querySelector(".width").value);
+                var height = parseFloat(boxContainer.querySelector(".height").value);
+                var quantity = parseInt(boxContainer.querySelector(".quantity").value);
+
+                var cbm = (length * width * height) / 1000000; // Conversion to cubic meters
+                var boxCBM = cbm * quantity;
+
+                totalCBM += boxCBM;
+
+                // Display box details
+                var boxDetails = `
+                    <div class="result-row">
+                        <div class="box-details">
+                            <p><strong>${boxContainer.querySelector(".box-name").value}:</strong></p>
+                            <p>Length: ${length} cm</p>
+                            <p>Width: ${width} cm</p>
+                            <p>Height: ${height} cm</p>
+                            <p>Quantity: ${quantity}</p>
+                        </div>
+                        <div>
+                            <p>CBM: ${boxCBM.toFixed(2)} m³</p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById("result").insertAdjacentHTML('beforeend', boxDetails);
+            });
+
+            // Display total CBM
+            document.getElementById("result").insertAdjacentHTML('beforeend', `<p><strong>Total CBM:</strong> ${totalCBM.toFixed(2)} m³</p>`);
+        }
+
+        function resetAll() {
+            // Remove all existing box containers
+            document.getElementById("boxes-container").innerHTML = '';
+
+            // Reset boxCount to 0
+            boxCount = 0;
+
+            // Add one default box
+            addBox();
+
+            // Clear the result display
+            document.getElementById("result").innerHTML = '';
+        }
+    </script>
+</body>
+</html>
